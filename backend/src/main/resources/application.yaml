@@ -1,6 +1,6 @@
 ktor:
     application:
         modules:
-            - org.statistics_gatherer.ApplicationKt.module
+            - org.statistics_gatherer.backend.ApplicationKt.module
     deployment:
         port: 8080
