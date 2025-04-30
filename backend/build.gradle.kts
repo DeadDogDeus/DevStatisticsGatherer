@@ -1,10 +1,8 @@
 plugins {
     alias(libs.plugins.ktor)
     alias(libs.plugins.kotlin.plugin.serialization)
+    application
 }
-
-group = "org.statistics_gatherer.backend"
-version = "0.0.1"
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
