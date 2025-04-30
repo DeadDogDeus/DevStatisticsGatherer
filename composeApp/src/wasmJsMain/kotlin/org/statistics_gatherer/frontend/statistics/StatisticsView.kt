@@ -1,4 +1,4 @@
-package org.devstatisticsgatherer.export_pull_requests
+package org.statistics_gatherer.frontend.statistics
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.MaterialTheme
@@ -9,17 +9,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-class ExportPullRequestsViewModel: ViewModel() {
+class StatisticsViewModel: ViewModel() {
 
 }
 
 @Composable
-fun ExportPullRequestsView(
-    viewModel: ExportPullRequestsViewModel = viewModel { ExportPullRequestsViewModel() }
+fun StatisticsView(
+    viewModel: StatisticsViewModel = viewModel { StatisticsViewModel() }
 ) {
     Text(
         modifier = Modifier.fillMaxWidth(),
-        text = "Export Pull Requests",
+        text = "Statistics",
         style = MaterialTheme.typography.h4.copy(textAlign = TextAlign.Center),
     )
 }

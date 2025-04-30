@@ -1,7 +1,6 @@
-package org.devstatisticsgatherer
+package org.statistics_gatherer.frontend
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -18,8 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.devstatisticsgatherer.export_pull_requests.ExportPullRequestsView
-import org.devstatisticsgatherer.statistics.StatisticsView
+import org.statistics_gatherer.frontend.export_pull_requests.ExportPullRequestsView
+import org.statistics_gatherer.frontend.statistics.StatisticsView
 
 enum class Screens {
     EXPORT_PULL_REQUESTS,

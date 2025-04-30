@@ -1,4 +1,4 @@
-package org.devstatisticsgatherer
+package org.statistics_gatherer.frontend
 
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
