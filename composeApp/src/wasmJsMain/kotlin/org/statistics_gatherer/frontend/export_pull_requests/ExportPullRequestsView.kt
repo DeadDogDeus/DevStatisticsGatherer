@@ -16,6 +16,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.request
 import kotlinx.coroutines.GlobalScope
@@ -24,7 +25,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ExportPullRequestsViewModel: ViewModel() {
-    private val client = HttpClient()
+    private val client = HttpClient() {
+        install(Logging)
+    }
 
     private var _state: MutableStateFlow<String> = MutableStateFlow("")
     val state: StateFlow<String> get() = _state
