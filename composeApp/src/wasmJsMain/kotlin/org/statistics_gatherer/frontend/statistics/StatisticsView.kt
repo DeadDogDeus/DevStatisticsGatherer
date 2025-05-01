@@ -18,6 +18,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -164,16 +165,22 @@ private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifi
             style = MaterialTheme.typography.body1,
             modifier = Modifier.padding(top = 32.dp)
         )
-        val bars = allByYear.map {
-            Bars(
-                label = it.year.toString(),
-                values = listOf(
-                    Bars.Data(
-                        value = it.count.toDouble(),
-                        color = SolidColor(Color.Blue)
-                    )
-                ),
-            )
+        val windowWidth by rememberWindowWidth()
+
+        val bars by remember(allByYear, windowWidth) {
+            val bars = allByYear.map {
+                Bars(
+                    label = it.year.toString(),
+                    values = listOf(
+                        Bars.Data(
+                            value = it.count.toDouble(),
+                            color = SolidColor(Color.Blue)
+                        )
+                    ),
+                )
+            }
+
+            mutableStateOf(bars)
         }
 
         ColumnChart(
@@ -220,12 +227,18 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
             SolidColor(Color.Black)
         )
 
-        val lines = userPullRequests.mapIndexed { index, value ->
-            Line(
-                label = value.user,
-                values = value.pullRequests.map { it.count.toDouble() },
-                color = colors[index % colors.size],
-            )
+        val windowWidth by rememberWindowWidth()
+
+        val lines by remember(userPullRequests, windowWidth) {
+            val lines = userPullRequests.mapIndexed { index, value ->
+                Line(
+                    label = value.user,
+                    values = value.pullRequests.map { it.count.toDouble() },
+                    color = colors[index % colors.size],
+                )
+            }
+
+            mutableStateOf(lines)
         }
 
         val years = userPullRequests.firstOrNull()

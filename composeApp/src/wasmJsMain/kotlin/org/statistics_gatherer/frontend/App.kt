@@ -50,13 +50,19 @@ fun App() {
                 DropdownMenuItem(
                     enabled = screenType != Screens.INTEGRATIONS,
                     content = { Text("Integrations") },
-                    onClick = { screenType = Screens.INTEGRATIONS }
+                    onClick = {
+                        expanded = false
+                        screenType = Screens.INTEGRATIONS
+                    }
                 )
 
                 DropdownMenuItem(
                     enabled = screenType != Screens.STATISTICS,
                     content = { Text("Statistics") },
-                    onClick = { screenType = Screens.STATISTICS }
+                    onClick = {
+                        expanded = false
+                        screenType = Screens.STATISTICS
+                    }
                 )
             }
         }
