@@ -17,22 +17,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import org.statistics_gatherer.frontend.export_pull_requests.ExportPullRequestsView
+import org.statistics_gatherer.frontend.export_pull_requests.IntegrationsView
 import org.statistics_gatherer.frontend.statistics.StatisticsView
 
 enum class Screens {
-    EXPORT_PULL_REQUESTS,
+    INTEGRATIONS,
     STATISTICS
 }
 
 @Composable
 fun App() {
     MaterialTheme {
-        var screenType by remember { mutableStateOf(Screens.EXPORT_PULL_REQUESTS) }
+        var screenType by remember { mutableStateOf(Screens.INTEGRATIONS) }
         var expanded by remember { mutableStateOf(false) }
 
         when (screenType) {
-            Screens.EXPORT_PULL_REQUESTS -> ExportPullRequestsView()
+            Screens.INTEGRATIONS -> IntegrationsView()
             Screens.STATISTICS -> StatisticsView()
         }
 
@@ -48,9 +48,9 @@ fun App() {
                 onDismissRequest = { expanded = false }
             ) {
                 DropdownMenuItem(
-                    enabled = screenType != Screens.EXPORT_PULL_REQUESTS,
-                    content = { Text("Export Pull Requests") },
-                    onClick = { screenType = Screens.EXPORT_PULL_REQUESTS }
+                    enabled = screenType != Screens.INTEGRATIONS,
+                    content = { Text("Integrations") },
+                    onClick = { screenType = Screens.INTEGRATIONS }
                 )
 
                 DropdownMenuItem(
