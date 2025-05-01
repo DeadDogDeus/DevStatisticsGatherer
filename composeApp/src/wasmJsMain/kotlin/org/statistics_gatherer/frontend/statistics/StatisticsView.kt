@@ -2,20 +2,15 @@ package org.statistics_gatherer.frontend.statistics
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.OverscrollEffect
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
@@ -33,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.LineChart
@@ -43,58 +37,6 @@ import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import kotlinx.browser.window
-import kotlinx.coroutines.flow.MutableStateFlow
-
-data class PullRequestByYear(
-    val year: Int,
-    val count: Int
-)
-
-data class UserPullRequests(
-    val user: String,
-    val pullRequests: List<PullRequestByYear>
-)
-
-class StatisticsViewModel: ViewModel() {
-    private val _allByYear: MutableStateFlow<List<PullRequestByYear>> = MutableStateFlow(listOf(
-        PullRequestByYear(2020, 100),
-        PullRequestByYear(2021, 200),
-        PullRequestByYear(2022, 190),
-        PullRequestByYear(2023, 300),
-        PullRequestByYear(2024, 400),
-        PullRequestByYear(2025, 100)
-    ))
-
-    val allByYear: List<PullRequestByYear> get() = _allByYear.value
-
-    private val _userPullRequests: MutableStateFlow<List<UserPullRequests>> = MutableStateFlow(listOf(
-        UserPullRequests("User1", listOf(
-            PullRequestByYear(2020, 10),
-            PullRequestByYear(2021, 20),
-            PullRequestByYear(2022, 30),
-            PullRequestByYear(2023, 40),
-            PullRequestByYear(2024, 50),
-            PullRequestByYear(2025, 0)
-        )),
-        UserPullRequests("User2", listOf(
-            PullRequestByYear(2020, 15),
-            PullRequestByYear(2021, 25),
-            PullRequestByYear(2022, 35),
-            PullRequestByYear(2023, 10),
-            PullRequestByYear(2024, 17),
-            PullRequestByYear(2025, 65)
-        )),
-        UserPullRequests("User3", listOf(
-            PullRequestByYear(2020, 0),
-            PullRequestByYear(2021, 0),
-            PullRequestByYear(2022, 0),
-            PullRequestByYear(2023, 0),
-            PullRequestByYear(2024, 55),
-            PullRequestByYear(2025, 65)
-        ))
-    ))
-    val userPullRequests: List<UserPullRequests> get() = _userPullRequests.value
-}
 
 @Composable
 fun rememberWindowSize(): State<Size> {
@@ -141,11 +83,9 @@ fun StatisticsView(
             style = MaterialTheme.typography.h4.copy(textAlign = TextAlign.Center),
         )
 
-        Column(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-        )
-        {
+        val scrollState = rememberScrollState(0)
+
+        Column(modifier = Modifier.verticalScroll(scrollState)) {
             Text(
                 text = "Pull Requests by Year",
                 style = MaterialTheme.typography.h6,

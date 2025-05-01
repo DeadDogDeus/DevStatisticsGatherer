@@ -18,12 +18,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.statistics_gatherer.frontend.export_pull_requests.IntegrationsView
+import org.statistics_gatherer.frontend.export_pull_requests.PullRequestsService
 import org.statistics_gatherer.frontend.statistics.StatisticsView
 
 enum class Screens {
     INTEGRATIONS,
     STATISTICS
 }
+
+val pullRequestService = PullRequestsService()
 
 @Composable
 fun App() {
