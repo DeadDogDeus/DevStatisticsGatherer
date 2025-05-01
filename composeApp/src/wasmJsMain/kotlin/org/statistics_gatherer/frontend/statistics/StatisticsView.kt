@@ -2,46 +2,48 @@ package org.statistics_gatherer.frontend.statistics
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.OverscrollEffect
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.overscroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.Recomposer
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.LineChart
-import ir.ehsannarmani.compose_charts.extensions.format
 import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
-import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.datetime.internal.JSJoda.TextStyle
 
 data class PullRequestByYear(
     val year: Int,
@@ -78,8 +80,8 @@ class StatisticsViewModel: ViewModel() {
             PullRequestByYear(2020, 15),
             PullRequestByYear(2021, 25),
             PullRequestByYear(2022, 35),
-            PullRequestByYear(2023, 45),
-            PullRequestByYear(2024, 55),
+            PullRequestByYear(2023, 10),
+            PullRequestByYear(2024, 17),
             PullRequestByYear(2025, 65)
         )),
         UserPullRequests("User3", listOf(
@@ -95,22 +97,32 @@ class StatisticsViewModel: ViewModel() {
 }
 
 @Composable
-fun rememberWindowWidth(): State<Int> {
-    val windowWidth = remember { mutableStateOf(window.innerWidth) }
+fun rememberWindowSize(): State<Size> {
+    val size = remember {
+        mutableStateOf(
+            Size(width = window.innerWidth.toFloat(), height = window.innerHeight.toFloat())
+        )
+    }
 
     DisposableEffect(Unit) {
         window.addEventListener("resize") {
-            windowWidth.value = window.innerWidth
+            size.value = Size(
+                width = window.innerWidth.toFloat(),
+                height = window.innerHeight.toFloat()
+            )
         }
 
         onDispose {
             window.removeEventListener("resize") {
-                windowWidth.value = window.innerWidth
+                size.value = Size(
+                    width = window.innerWidth.toFloat(),
+                    height = window.innerHeight.toFloat()
+                )
             }
         }
     }
 
-    return windowWidth
+    return size
 }
 
 @Composable
@@ -121,7 +133,7 @@ fun StatisticsView(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(32.dp)
+            .padding(start = 32.dp, end = 16.dp, top = 32.dp, bottom = 0.dp)
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -129,25 +141,32 @@ fun StatisticsView(
             style = MaterialTheme.typography.h4.copy(textAlign = TextAlign.Center),
         )
 
-        Text(
-            text = "Pull Requests by Year",
-            style = MaterialTheme.typography.h6,
-            modifier = Modifier.padding(top = 32.dp)
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
         )
+        {
+            Text(
+                text = "Pull Requests by Year",
+                style = MaterialTheme.typography.h6,
+                modifier = Modifier.padding(top = 32.dp)
+            )
 
-        val windowWidth by rememberWindowWidth()
+            val windowSize by rememberWindowSize()
 
-        if (windowWidth > 800) {
-            Row {
-                AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(32.dp))
-                UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
-            }
-        } else {
-            Column {
-                AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
-                Spacer(modifier = Modifier.width(32.dp))
-                UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+            if (windowSize.width > 800) {
+                Row {
+                    AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
+                    Spacer(modifier = Modifier.width(32.dp))
+                    UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+                }
+            } else {
+                Column {
+                    AllPullRequestsByYearView(viewModel.allByYear, Modifier.height(400.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
+                    UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.height(400.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
@@ -165,9 +184,9 @@ private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifi
             style = MaterialTheme.typography.body1,
             modifier = Modifier.padding(top = 32.dp)
         )
-        val windowWidth by rememberWindowWidth()
+        val windowSize by rememberWindowSize()
 
-        val bars by remember(allByYear, windowWidth) {
+        val bars by remember(allByYear, windowSize) {
             val bars = allByYear.map {
                 Bars(
                     label = it.year.toString(),
@@ -185,8 +204,8 @@ private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifi
 
         ColumnChart(
             modifier = Modifier
-                .heightIn(max = 300.dp)
-                .fillMaxWidth(),
+                .heightIn(min = 200.dp, max = 400.dp)
+                .fillMaxSize(),
             data = bars,
             barProperties = BarProperties(
                 cornerRadius = Bars.Data.Radius.Rectangle(topRight = 10.dp, topLeft = 10.dp),
@@ -227,9 +246,9 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
             SolidColor(Color.Black)
         )
 
-        val windowWidth by rememberWindowWidth()
+        val windowSize by rememberWindowSize()
 
-        val lines by remember(userPullRequests, windowWidth) {
+        val lines by remember(userPullRequests, windowSize) {
             val lines = userPullRequests.mapIndexed { index, value ->
                 Line(
                     label = value.user,
@@ -247,8 +266,8 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
 
         LineChart(
             modifier = Modifier
-                .heightIn(max = 300.dp)
-                .fillMaxWidth(),
+                .heightIn(min = 200.dp, max = 400.dp)
+                .fillMaxSize(),
             data = lines,
             labelProperties = LabelProperties(
                 enabled = true,
