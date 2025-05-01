@@ -12,11 +12,18 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Recomposer
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -30,7 +37,9 @@ import ir.ehsannarmani.compose_charts.models.HorizontalIndicatorProperties
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
+import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.internal.JSJoda.TextStyle
 
 data class PullRequestByYear(
@@ -85,6 +94,25 @@ class StatisticsViewModel: ViewModel() {
 }
 
 @Composable
+fun rememberWindowWidth(): State<Int> {
+    val windowWidth = remember { mutableStateOf(window.innerWidth) }
+
+    DisposableEffect(Unit) {
+        window.addEventListener("resize") {
+            windowWidth.value = window.innerWidth
+        }
+
+        onDispose {
+            window.removeEventListener("resize") {
+                windowWidth.value = window.innerWidth
+            }
+        }
+    }
+
+    return windowWidth
+}
+
+@Composable
 fun StatisticsView(
     viewModel: StatisticsViewModel = viewModel { StatisticsViewModel() }
 ) {
@@ -106,10 +134,20 @@ fun StatisticsView(
             modifier = Modifier.padding(top = 32.dp)
         )
 
-        Row {
-            AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
-            Spacer(modifier = Modifier.width(32.dp))
-            UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+        val windowWidth by rememberWindowWidth()
+
+        if (windowWidth > 800) {
+            Row {
+                AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
+                Spacer(modifier = Modifier.width(32.dp))
+                UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+            }
+        } else {
+            Column {
+                AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
+                Spacer(modifier = Modifier.width(32.dp))
+                UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+            }
         }
     }
 }
