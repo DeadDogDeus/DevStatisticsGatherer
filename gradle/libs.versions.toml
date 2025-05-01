@@ -6,6 +6,7 @@ kotlin = "2.1.10"
 ktor-version = "3.1.2"
 logback-version = "1.4.14"
 kotlinx-datetime-version = "0.5.0"
+compose-charts-version = "0.1.2"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -27,6 +28,7 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor-vers
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor-version" }
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-version" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
+compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "compose-charts-version" }
 
 [plugins]
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

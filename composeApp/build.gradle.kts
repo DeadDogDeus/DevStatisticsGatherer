@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.cio)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.compose.charts)
         }
 
         wasmJsMain.dependencies {
