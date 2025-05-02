@@ -3,9 +3,13 @@ package org.statistics_gatherer.frontend.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.browser.window
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import org.statistics_gatherer.frontend.export_pull_requests.PullRequestsService
 
@@ -23,14 +27,17 @@ class StatisticsViewModel(
     private val pullRequestService: PullRequestsService
 ): ViewModel() {
     private val _allByYear: MutableStateFlow<List<PullRequestByYear>> = MutableStateFlow(emptyList())
-    val allByYear: List<PullRequestByYear> get() = _allByYear.value
+    val allByYear: StateFlow<List<PullRequestByYear>> get() = _allByYear
 
     private val _userPullRequests: MutableStateFlow<List<UserPullRequests>> = MutableStateFlow(emptyList())
-    val userPullRequests: List<UserPullRequests> get() = _userPullRequests.value
+    val userPullRequests: StateFlow<List<UserPullRequests>> get() = _userPullRequests
 
+    @OptIn(FlowPreview::class)
     fun initViewModel() {
         viewModelScope.launch {
-            pullRequestService.pullRequests.collect { pullRequests ->
+            pullRequestService.pullRequests
+                .sample(5000)
+                .collect { pullRequests ->
                 val allByYear = mutableMapOf<Int, Int>()
 
                 pullRequests.forEach { pullRequest ->

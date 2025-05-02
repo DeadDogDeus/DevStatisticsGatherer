@@ -9,9 +9,11 @@ import io.ktor.client.request.headers
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.browser.window
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -118,7 +120,7 @@ class PullRequestsService {
             }
         }.body<PullRequestResponse>()
 
-        _pullRequests.value = result.values
+        _pullRequests.emit(result.values)
 
         emit(Progress(_pullRequests.value.size, result.size))
 
@@ -130,11 +132,11 @@ class PullRequestsService {
                 }
             }.body<PullRequestResponse>()
 
-            _pullRequests.value += result.values
+            _pullRequests.emit(_pullRequests.value + result.values)
 
             emit(Progress(_pullRequests.value.size, result.size))
         }
-    }
+    }.flowOn(Dispatchers.Default)
 
     suspend fun syncPullRequests() {
         window.alert("Coming soon:)")

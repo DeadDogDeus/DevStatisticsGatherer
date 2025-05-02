@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -100,17 +101,20 @@ fun StatisticsView(
 
             val windowSize by rememberWindowSize()
 
+            val allByYear by viewModel.allByYear.collectAsState()
+            val userPullRequests by viewModel.userPullRequests.collectAsState()
+
             if (windowSize.width > 800) {
                 Row {
-                    AllPullRequestsByYearView(viewModel.allByYear, Modifier.weight(1f))
+                    AllPullRequestsByYearView(allByYear, Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(32.dp))
-                    UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.weight(1f))
+                    UserPullRequestsByYearView(userPullRequests, Modifier.weight(1f))
                 }
             } else {
                 Column {
-                    AllPullRequestsByYearView(viewModel.allByYear, Modifier.height(400.dp))
+                    AllPullRequestsByYearView(allByYear, Modifier.height(400.dp))
                     Spacer(modifier = Modifier.height(32.dp))
-                    UserPullRequestsByYearView(viewModel.userPullRequests, Modifier.height(400.dp))
+                    UserPullRequestsByYearView(userPullRequests, Modifier.height(400.dp))
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -209,6 +213,9 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
         val years = userPullRequests.firstOrNull()
             ?.pullRequests
             ?.map { it.year.toString() } ?: emptyList()
+        if (years.isEmpty()) {
+            return@Column
+        }
 
         LineChart(
             modifier = Modifier
