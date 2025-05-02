@@ -15,6 +15,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,6 +32,10 @@ import org.statistics_gatherer.frontend.pullRequestService
 fun IntegrationsView(
     viewModel: IntegrationsViewModel = viewModel { IntegrationsViewModel(pullRequestService) }
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.initViewModel()
+    }
+
     val state by viewModel.state.collectAsState()
 
     Column(
@@ -57,10 +62,10 @@ fun IntegrationsView(
                 ) {
                     CircularProgressIndicator()
                 }
-            } else if (state.bitbucketApiKey != null) {
-                BitbucketApiKeyView(viewModel)
-            } else {
+            } else if (state.bitbucketApiKey?.status == "" || state.bitbucketApiKey?.status == null) {
                 AddBitBucketKeyView(state, viewModel)
+            } else {
+                BitbucketApiKeyView(viewModel)
             }
         }
     }

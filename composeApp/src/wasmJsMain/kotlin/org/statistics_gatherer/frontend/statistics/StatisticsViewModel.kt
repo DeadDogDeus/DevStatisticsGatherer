@@ -1,7 +1,12 @@
 package org.statistics_gatherer.frontend.statistics
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import org.statistics_gatherer.frontend.export_pull_requests.PullRequestsService
 
 data class PullRequestByYear(
     val year: Int,
@@ -13,7 +18,9 @@ data class UserPullRequests(
     val pullRequests: List<PullRequestByYear>
 )
 
-class StatisticsViewModel: ViewModel() {
+class StatisticsViewModel(
+    private val pullRequestService: PullRequestsService
+): ViewModel() {
     private val _allByYear: MutableStateFlow<List<PullRequestByYear>> = MutableStateFlow(listOf(
         PullRequestByYear(2020, 100),
         PullRequestByYear(2021, 200),
@@ -52,4 +59,12 @@ class StatisticsViewModel: ViewModel() {
         ))
     ))
     val userPullRequests: List<UserPullRequests> get() = _userPullRequests.value
+
+    fun initViewModel() {
+        viewModelScope.launch {
+            pullRequestService.pullRequests.collect {
+
+            }
+        }
+    }
 }

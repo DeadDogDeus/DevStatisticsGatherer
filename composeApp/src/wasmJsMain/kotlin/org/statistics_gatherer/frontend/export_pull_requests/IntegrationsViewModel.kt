@@ -32,9 +32,7 @@ class IntegrationsViewModel(
     private val _state: MutableStateFlow<ExportState> = MutableStateFlow(ExportState())
     val state: StateFlow<ExportState> get() = _state
 
-    override fun onCleared() {
-        super.onCleared()
-
+    fun initViewModel() {
         load()
     }
 

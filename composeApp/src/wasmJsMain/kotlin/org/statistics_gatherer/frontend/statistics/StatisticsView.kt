@@ -17,6 +17,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import kotlinx.browser.window
+import org.statistics_gatherer.frontend.pullRequestService
 
 @Composable
 fun rememberWindowSize(): State<Size> {
@@ -69,8 +71,12 @@ fun rememberWindowSize(): State<Size> {
 
 @Composable
 fun StatisticsView(
-    viewModel: StatisticsViewModel = viewModel { StatisticsViewModel() }
+    viewModel: StatisticsViewModel = viewModel { StatisticsViewModel(pullRequestService = pullRequestService) }
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.initViewModel()
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
