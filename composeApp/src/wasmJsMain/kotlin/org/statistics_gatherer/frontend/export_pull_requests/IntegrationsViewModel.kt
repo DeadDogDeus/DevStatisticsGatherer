@@ -29,6 +29,9 @@ class IntegrationsViewModel(
     private val _isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> get() = _isLoading
 
+    private val _loadingProgress: MutableStateFlow<Progress> = MutableStateFlow(Progress(0, 0))
+    val loadingProgress: StateFlow<Progress> get() = _loadingProgress
+
     private val _state: MutableStateFlow<ExportState> = MutableStateFlow(ExportState())
     val state: StateFlow<ExportState> get() = _state
 
@@ -72,7 +75,9 @@ class IntegrationsViewModel(
                 apiKey = apiKey,
                 project = project,
                 company = company
-            )
+            ).collect {
+                _loadingProgress.value = it
+            }
 
             val now = Clock.System.now()
             val dateString = now.toLocalDateTime(TimeZone.currentSystemDefault()).toString()

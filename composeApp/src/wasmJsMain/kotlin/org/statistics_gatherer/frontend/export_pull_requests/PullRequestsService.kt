@@ -7,10 +7,11 @@ import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpHeaders
-import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.browser.window
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -49,6 +50,11 @@ data class PullRequestResponse(
     val next: String? = null
 )
 
+data class Progress(
+    val has: Int,
+    val from: Int
+)
+
 class PullRequestsService {
     private val _apiKey = MutableStateFlow<String?>(null)
     private val _project = MutableStateFlow<String?>(null)
@@ -64,10 +70,12 @@ class PullRequestsService {
         }
     }
 
-    suspend fun applyBitbucketApiKey(apiKey: String, project: String, company: String) {
+    suspend fun applyBitbucketApiKey(apiKey: String, project: String, company: String) : Flow<Progress> = flow {
         _apiKey.value = apiKey
         _project.value = project
         _company.value = company
+
+        emit(Progress(0, 0))
 
         var result = client.get("https://api.bitbucket.org/2.0/repositories/$company/$project/pullrequests") {
             url {
@@ -81,6 +89,8 @@ class PullRequestsService {
 
         _pullRequests.value = result.values
 
+        emit(Progress(_pullRequests.value.size, result.size))
+
         while (result.next != null) {
             result = client.get(result.next!!) {
                 headers {
@@ -90,6 +100,8 @@ class PullRequestsService {
             }.body<PullRequestResponse>()
 
             _pullRequests.value += result.values
+
+            emit(Progress(_pullRequests.value.size, result.size))
         }
     }
 

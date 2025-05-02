@@ -54,13 +54,18 @@ fun IntegrationsView(
             horizontalArrangement = Arrangement.Center
         ) {
             val isLoading by viewModel.isLoading.collectAsState()
+            val loadingProgress by viewModel.loadingProgress.collectAsState()
 
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(8.dp),
+                        progress = loadingProgress.has.toFloat() / loadingProgress.from.toFloat(),
+                        color = MaterialTheme.colors.primary
+                    )
                 }
             } else if (state.bitbucketApiKey?.status == "" || state.bitbucketApiKey?.status == null) {
                 AddBitBucketKeyView(state, viewModel)
