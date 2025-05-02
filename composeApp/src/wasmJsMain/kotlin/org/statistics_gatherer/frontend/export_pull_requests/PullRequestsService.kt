@@ -12,22 +12,36 @@ import kotlinx.browser.window
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.internal.JSJoda.OffsetDateTime
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonIgnoreUnknownKeys
 data class PullRequest(
-    val id: String,
+    val id: Int,
     val title: String,
     @SerialName("comment_count")
     val commentCount: Int,
     val author: Author,
     @SerialName("created_on")
-    val createdDate: String,
+    val createdDate: Instant,
     val state: String
 ) {
 
@@ -37,6 +51,9 @@ data class PullRequest(
         @SerialName("display_name")
         val displayName: String
     )
+
+    val year: Int
+        get() = createdDate.toLocalDateTime(TimeZone.currentSystemDefault()).year
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -54,6 +71,19 @@ data class Progress(
     val has: Int,
     val from: Int
 )
+
+object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): OffsetDateTime {
+        return OffsetDateTime.parse(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: OffsetDateTime) {
+        encoder.encodeString(value.toString())
+    }
+}
 
 class PullRequestsService {
     private val _apiKey = MutableStateFlow<String?>(null)
@@ -80,6 +110,7 @@ class PullRequestsService {
         var result = client.get("https://api.bitbucket.org/2.0/repositories/$company/$project/pullrequests") {
             url {
                 parameters.append("state", "\"\"")
+                parameters.append("pagelen", "50")
             }
             headers {
                 append(HttpHeaders.Authorization, "Basic $apiKey")

@@ -3,6 +3,7 @@ package org.statistics_gatherer.frontend.statistics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.browser.window
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -62,8 +63,16 @@ class StatisticsViewModel(
 
     fun initViewModel() {
         viewModelScope.launch {
-            pullRequestService.pullRequests.collect {
+            pullRequestService.pullRequests.collect { pullRequests ->
+                val allByYear = mutableMapOf<Int, Int>()
 
+                pullRequests.forEach { pullRequest ->
+                    allByYear[pullRequest.year] = (allByYear[pullRequest.year] ?: 0) + 1
+                }
+
+                _allByYear.value = allByYear.map { (year, count) ->
+                    PullRequestByYear(year, count)
+                }.sortedBy { it.year }
             }
         }
     }

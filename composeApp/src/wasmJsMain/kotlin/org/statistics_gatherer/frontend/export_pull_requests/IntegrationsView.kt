@@ -61,11 +61,15 @@ fun IntegrationsView(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(8.dp),
-                        progress = loadingProgress.has.toFloat() / loadingProgress.from.toFloat(),
-                        color = MaterialTheme.colors.primary
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+
+                        Text(
+                            text = "${loadingProgress.has} / ${loadingProgress.from}",
+                            style = MaterialTheme.typography.body1,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             } else if (state.bitbucketApiKey?.status == "" || state.bitbucketApiKey?.status == null) {
                 AddBitBucketKeyView(state, viewModel)
