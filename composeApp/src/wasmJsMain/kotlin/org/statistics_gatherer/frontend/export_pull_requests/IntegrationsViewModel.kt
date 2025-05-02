@@ -13,9 +13,11 @@ data class ExportState(
     val bitbucketApiKey: ApiKey? = null
 ) {
     data class ApiKey(
-        val key: String = "",
-        val lastSyncDate: String = "",
-        val status: String = ""
+        val key: String,
+        val project: String,
+        val company: String,
+        val lastSyncDate: String,
+        val status: String
     )
 }
 
@@ -28,11 +30,19 @@ class IntegrationsViewModel(
     private val _state: MutableStateFlow<ExportState> = MutableStateFlow(ExportState())
     val state: StateFlow<ExportState> get() = _state
 
-    fun applyBitbucketApiKey(apiKey: String) = viewModelScope.launch {
+    fun applyBitbucketApiKey(
+        apiKey: String,
+        project: String,
+        company: String
+    ) = viewModelScope.launch {
         _isLoading.value = true
 
         try {
-            pullRequestsService.applyBitbucketApiKey(apiKey)
+            pullRequestsService.applyBitbucketApiKey(
+                apiKey = apiKey,
+                project = project,
+                company = company
+            )
 
             val now = Clock.System.now()
             val dateString = now.toLocalDateTime(TimeZone.currentSystemDefault()).toString()
@@ -42,6 +52,8 @@ class IntegrationsViewModel(
                     key = apiKey,
                     status = "Synced ${pullRequestsService.pullRequests.value.size} pull requests",
                     lastSyncDate = dateString,
+                    project = project,
+                    company = company
                 )
             )
         } catch (e: Exception) {
@@ -73,6 +85,8 @@ class IntegrationsViewModel(
                     key = _state.value.bitbucketApiKey?.key ?: "",
                     status = "Synced ${pullRequestsService.pullRequests.value.size} pull requests",
                     lastSyncDate = dateString,
+                    project = _state.value.bitbucketApiKey?.project ?: "",
+                    company = _state.value.bitbucketApiKey?.company ?: ""
                 )
             )
         } catch (e: Exception) {

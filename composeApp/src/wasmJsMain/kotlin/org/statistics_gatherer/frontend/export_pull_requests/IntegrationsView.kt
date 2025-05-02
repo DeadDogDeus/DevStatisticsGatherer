@@ -107,8 +107,16 @@ private fun AddBitBucketKeyView(
     state: ExportState,
     viewModel: IntegrationsViewModel
 ) {
-    var textValue by remember(state.bitbucketApiKey?.key) {
+    var apiKey by remember(state.bitbucketApiKey?.key) {
         mutableStateOf(state.bitbucketApiKey?.key ?: "")
+    }
+
+    var company by remember(state.bitbucketApiKey?.company) {
+        mutableStateOf(state.bitbucketApiKey?.company ?: "")
+    }
+
+    var project by remember(state.bitbucketApiKey?.project) {
+        mutableStateOf(state.bitbucketApiKey?.project ?: "")
     }
 
     Column(
@@ -118,15 +126,33 @@ private fun AddBitBucketKeyView(
     ) {
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = textValue,
-            onValueChange = { textValue = it },
+            value = apiKey,
+            onValueChange = { apiKey = it },
             label = { Text("Bitbucket API Key") }
+        )
+
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = company,
+            onValueChange = { company = it },
+            label = { Text("Bitbucket Organization") }
+        )
+
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = project,
+            onValueChange = { project = it },
+            label = { Text("Bitbucket Project") }
         )
 
         Button(
             modifier = Modifier.fillMaxWidth(),
-            enabled = textValue.isNotEmpty(),
-            onClick = { viewModel.applyBitbucketApiKey(textValue) }
+            enabled = apiKey.isNotEmpty() && company.isNotEmpty() && project.isNotEmpty(),
+            onClick = { viewModel.applyBitbucketApiKey(
+                apiKey = apiKey,
+                project = company,
+                company = company
+            ) }
         ) {
             Text("Apply")
         }

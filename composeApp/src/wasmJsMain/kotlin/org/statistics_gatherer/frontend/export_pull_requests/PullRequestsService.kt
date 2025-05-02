@@ -2,6 +2,8 @@ package org.statistics_gatherer.frontend.export_pull_requests
 
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.get
+import io.ktor.client.request.headers
 import kotlinx.coroutines.flow.MutableStateFlow
 
 data class PullRequest(
@@ -22,7 +24,12 @@ class PullRequestsService {
         install(Logging)
     }
 
-    suspend fun applyBitbucketApiKey(apiKey: String) {
+    suspend fun applyBitbucketApiKey(apiKey: String, project: String, company: String) {
+        client.get("http://bitbucket.org/rest/api/latest/projects/infobric/repos/ease.app.checkin.api.specification/pull-requests") {
+            headers {
+
+            }
+        }
     }
 
     suspend fun syncPullRequests() {
