@@ -7,6 +7,7 @@ ktor-version = "3.1.2"
 logback-version = "1.4.14"
 kotlinx-datetime-version = "0.5.0"
 compose-charts-version = "0.1.2"
+kotlinx-serialization = "1.6.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -29,6 +30,8 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor-version" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime-version" }
 compose-charts = { module = "io.github.ehsannarmani:compose-charts", version.ref = "compose-charts-version" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor-version" }
 
 [plugins]
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

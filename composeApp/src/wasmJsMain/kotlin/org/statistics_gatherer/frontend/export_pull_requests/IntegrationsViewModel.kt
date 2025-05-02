@@ -2,6 +2,8 @@ package org.statistics_gatherer.frontend.export_pull_requests
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.browser.localStorage
+import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -30,6 +32,36 @@ class IntegrationsViewModel(
     private val _state: MutableStateFlow<ExportState> = MutableStateFlow(ExportState())
     val state: StateFlow<ExportState> get() = _state
 
+    override fun onCleared() {
+        super.onCleared()
+
+        load()
+    }
+
+    private fun save() {
+        localStorage.setItem("apiKey", _state.value.bitbucketApiKey?.key ?: "")
+        localStorage.setItem("project", _state.value.bitbucketApiKey?.project ?: "")
+        localStorage.setItem("organization", _state.value.bitbucketApiKey?.company ?: "")
+    }
+
+    private fun load() {
+        val apiKey = localStorage.getItem("apiKey")
+        val project = localStorage.getItem("project")
+        val organization = localStorage.getItem("organization")
+
+        if (!apiKey.isNullOrBlank() && !project.isNullOrBlank() && !organization.isNullOrBlank()) {
+            _state.value = _state.value.copy(
+                bitbucketApiKey = ExportState.ApiKey(
+                    key = apiKey,
+                    project = project,
+                    company = organization,
+                    lastSyncDate = "",
+                    status = ""
+                )
+            )
+        }
+    }
+
     fun applyBitbucketApiKey(
         apiKey: String,
         project: String,
@@ -56,8 +88,11 @@ class IntegrationsViewModel(
                     company = company
                 )
             )
+
+            save()
         } catch (e: Exception) {
-            // Do nothing
+            // print exception
+            window.alert("Error applying Bitbucket API key: ${e.message}")
         } finally {
             _isLoading.value = false
         }

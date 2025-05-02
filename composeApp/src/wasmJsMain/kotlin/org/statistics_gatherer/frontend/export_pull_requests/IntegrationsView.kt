@@ -150,7 +150,7 @@ private fun AddBitBucketKeyView(
             enabled = apiKey.isNotEmpty() && company.isNotEmpty() && project.isNotEmpty(),
             onClick = { viewModel.applyBitbucketApiKey(
                 apiKey = apiKey,
-                project = company,
+                project = project,
                 company = company
             ) }
         ) {
