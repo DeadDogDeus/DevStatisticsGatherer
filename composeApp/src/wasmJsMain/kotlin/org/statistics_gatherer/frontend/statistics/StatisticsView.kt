@@ -37,6 +37,7 @@ import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.LineChart
 import ir.ehsannarmani.compose_charts.models.BarProperties
 import ir.ehsannarmani.compose_charts.models.Bars
+import ir.ehsannarmani.compose_charts.models.DotProperties
 import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
@@ -260,6 +261,14 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
                 .heightIn(min = 200.dp, max = 400.dp)
                 .fillMaxSize(),
             data = lines,
+            curvedEdges = false,
+            dotsProperties = DotProperties(
+                enabled = true,
+                radius = 2.dp,
+                color = SolidColor(Color.White),
+                strokeWidth = 2.dp,
+                strokeColor = SolidColor(Color.Black)
+            ),
             labelProperties = LabelProperties(
                 enabled = true,
                 labels = years,
