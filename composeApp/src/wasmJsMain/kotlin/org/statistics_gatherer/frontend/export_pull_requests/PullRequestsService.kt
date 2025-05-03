@@ -89,8 +89,7 @@ object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
 
 class PullRequestsService {
     private val _apiKey = MutableStateFlow<String?>(null)
-    private val _project = MutableStateFlow<String?>(null)
-    private val _company = MutableStateFlow<String?>(null)
+    private val _id = MutableStateFlow<String?>(null)
 
     private val _pullRequests = MutableStateFlow<List<PullRequest>>(emptyList())
     val pullRequests get() = _pullRequests
@@ -102,14 +101,13 @@ class PullRequestsService {
         }
     }
 
-    suspend fun applyBitbucketApiKey(apiKey: String, project: String, company: String) : Flow<Progress> = flow {
+    suspend fun applyBitbucketApiKey(apiKey: String, id: String) : Flow<Progress> = flow {
         _apiKey.value = apiKey
-        _project.value = project
-        _company.value = company
+        _id.value = id
 
         emit(Progress(0, 0))
 
-        var result = client.get("https://api.bitbucket.org/2.0/repositories/$company/$project/pullrequests") {
+        var result = client.get("https://api.bitbucket.org/2.0/repositories/$id/pullrequests") {
             url {
                 parameters.append("state", "\"\"")
                 parameters.append("pagelen", "50")
@@ -144,8 +142,7 @@ class PullRequestsService {
 
     suspend fun deleteBitbucketApiKey() {
         _apiKey.value = null
-        _project.value = null
-        _company.value = null
+        _id.value = null
 
         _pullRequests.value = emptyList()
     }

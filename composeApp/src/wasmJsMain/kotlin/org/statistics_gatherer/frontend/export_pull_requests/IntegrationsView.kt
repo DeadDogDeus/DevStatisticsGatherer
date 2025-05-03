@@ -4,10 +4,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.BasicSecureTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.CircularProgressIndicator
@@ -23,6 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -125,12 +134,8 @@ private fun AddBitBucketKeyView(
         mutableStateOf(state.bitbucketApiKey?.key ?: "")
     }
 
-    var company by remember(state.bitbucketApiKey?.company) {
-        mutableStateOf(state.bitbucketApiKey?.company ?: "")
-    }
-
-    var project by remember(state.bitbucketApiKey?.project) {
-        mutableStateOf(state.bitbucketApiKey?.project ?: "")
+    var id by remember(state.bitbucketApiKey?.id) {
+        mutableStateOf(state.bitbucketApiKey?.id ?: "")
     }
 
     Column(
@@ -141,31 +146,27 @@ private fun AddBitBucketKeyView(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = apiKey,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password
+            ),
             onValueChange = { apiKey = it },
-            label = { Text("Bitbucket API Key") }
+            label = { Text("Bitbucket API Key") },
+            visualTransformation = PasswordVisualTransformation()
         )
 
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = company,
-            onValueChange = { company = it },
-            label = { Text("Bitbucket Organization") }
-        )
-
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = project,
-            onValueChange = { project = it },
-            label = { Text("Bitbucket Project") }
+            value = id,
+            onValueChange = { id = it },
+            label = { Text("organization/project") }
         )
 
         Button(
             modifier = Modifier.fillMaxWidth(),
-            enabled = apiKey.isNotEmpty() && company.isNotEmpty() && project.isNotEmpty(),
+            enabled = apiKey.isNotEmpty() && id.isNotEmpty(),
             onClick = { viewModel.applyBitbucketApiKey(
                 apiKey = apiKey,
-                project = project,
-                company = company
+                id = id
             ) }
         ) {
             Text("Apply")

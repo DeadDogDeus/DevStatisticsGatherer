@@ -16,8 +16,7 @@ data class ExportState(
 ) {
     data class ApiKey(
         val key: String,
-        val project: String,
-        val company: String,
+        val id: String,
         val lastSyncDate: String,
         val status: String
     )
@@ -41,21 +40,18 @@ class IntegrationsViewModel(
 
     private fun save() {
         localStorage.setItem("apiKey", _state.value.bitbucketApiKey?.key ?: "")
-        localStorage.setItem("project", _state.value.bitbucketApiKey?.project ?: "")
-        localStorage.setItem("organization", _state.value.bitbucketApiKey?.company ?: "")
+        localStorage.setItem("id", _state.value.bitbucketApiKey?.id ?: "")
     }
 
     private fun load() {
         val apiKey = localStorage.getItem("apiKey")
-        val project = localStorage.getItem("project")
-        val organization = localStorage.getItem("organization")
+        val id = localStorage.getItem("id")
 
-        if (!apiKey.isNullOrBlank() && !project.isNullOrBlank() && !organization.isNullOrBlank()) {
+        if (!apiKey.isNullOrBlank() && !id.isNullOrBlank()) {
             _state.value = _state.value.copy(
                 bitbucketApiKey = ExportState.ApiKey(
                     key = apiKey,
-                    project = project,
-                    company = organization,
+                    id = id,
                     lastSyncDate = "",
                     status = ""
                 )
@@ -65,16 +61,14 @@ class IntegrationsViewModel(
 
     fun applyBitbucketApiKey(
         apiKey: String,
-        project: String,
-        company: String
+        id: String,
     ) = viewModelScope.launch {
         _isLoading.value = true
 
         try {
             pullRequestsService.applyBitbucketApiKey(
                 apiKey = apiKey,
-                project = project,
-                company = company
+                id = id
             ).collect {
                 _loadingProgress.value = it
             }
@@ -87,8 +81,7 @@ class IntegrationsViewModel(
                     key = apiKey,
                     status = "Synced ${pullRequestsService.pullRequests.value.size} pull requests",
                     lastSyncDate = dateString,
-                    project = project,
-                    company = company
+                    id = id
                 )
             )
 
@@ -123,8 +116,7 @@ class IntegrationsViewModel(
                     key = _state.value.bitbucketApiKey?.key ?: "",
                     status = "Synced ${pullRequestsService.pullRequests.value.size} pull requests",
                     lastSyncDate = dateString,
-                    project = _state.value.bitbucketApiKey?.project ?: "",
-                    company = _state.value.bitbucketApiKey?.company ?: ""
+                    id = _state.value.bitbucketApiKey?.id ?: "",
                 )
             )
         } catch (e: Exception) {
