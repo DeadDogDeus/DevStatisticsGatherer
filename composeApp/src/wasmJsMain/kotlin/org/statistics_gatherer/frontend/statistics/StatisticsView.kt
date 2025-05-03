@@ -154,6 +154,24 @@ private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifi
             mutableStateOf(bars)
         }
 
+        if (allByYear.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .heightIn(min = 200.dp, max = 400.dp)
+                    .fillMaxSize()
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No data available",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            return@Column
+        }
+
         ColumnChart(
             modifier = Modifier
                 .heightIn(min = 200.dp, max = 400.dp)
@@ -224,13 +242,13 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
                 modifier = Modifier
                     .heightIn(min = 200.dp, max = 400.dp)
                     .fillMaxSize()
-                    .background(MaterialTheme.colors.background),
+                    .background(Color.LightGray),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "No data available",
                     style = MaterialTheme.typography.body1,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxSize()
+                    textAlign = TextAlign.Center
                 )
             }
 
