@@ -2,6 +2,8 @@ package org.statistics_gatherer.frontend.statistics
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -187,13 +189,17 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
         )
 
         val colors = listOf(
-            SolidColor(Color.Green),
-            SolidColor(Color.Yellow),
-            SolidColor(Color.Blue),
-            SolidColor(Color.Cyan),
-            SolidColor(Color.Magenta),
-            SolidColor(Color.Gray),
-            SolidColor(Color.Black)
+            SolidColor(Color(0xFFFFD700)),
+            SolidColor(Color(0xFF00FF00)),
+            SolidColor(Color(0xFF008B8B)),
+            SolidColor(Color(0xFFFF4500)),
+            SolidColor(Color(0xFF1E90FF)),
+            SolidColor(Color(0xFFDA70D6)),
+            SolidColor(Color(0xFFBDB76B)),
+            SolidColor(Color(0xFF32CD32)),
+            SolidColor(Color(0xAA317F43)),
+            SolidColor(Color(0xFFFF1493)),
+            SolidColor(Color(0xFFFF8C00)),
         )
 
         val windowSize by rememberWindowSize()
@@ -214,6 +220,20 @@ private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>,
             ?.pullRequests
             ?.map { it.year.toString() } ?: emptyList()
         if (years.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .heightIn(min = 200.dp, max = 400.dp)
+                    .fillMaxSize()
+                    .background(MaterialTheme.colors.background),
+            ) {
+                Text(
+                    text = "No data available",
+                    style = MaterialTheme.typography.body1,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
             return@Column
         }
 
