@@ -2,13 +2,9 @@ package org.statistics_gatherer.frontend.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.browser.window
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import org.statistics_gatherer.frontend.export_pull_requests.PullRequestsService
@@ -35,41 +31,43 @@ class StatisticsViewModel(
     @OptIn(FlowPreview::class)
     fun initViewModel() {
         viewModelScope.launch {
-            pullRequestService.pullRequests
+            pullRequestService.integrations
                 .sample(5000)
-                .collect { pullRequests ->
-                val allByYear = mutableMapOf<Int, Int>()
+                .collect { integrations ->
+                    val pullRequests = integrations.firstOrNull()?.pullRequests ?: emptyList()
 
-                pullRequests.forEach { pullRequest ->
-                    allByYear[pullRequest.year] = (allByYear[pullRequest.year] ?: 0) + 1
-                }
+                    val allByYear = mutableMapOf<Int, Int>()
 
-                _allByYear.value = allByYear.map { (year, count) ->
-                    PullRequestByYear(year, count)
-                }.sortedBy { it.year }
-
-                val users = mutableMapOf<String, MutableMap<Int, Int>>()
-
-                pullRequests.forEach { pullRequest ->
-                    val user = pullRequest.author.displayName
-                    users[user] = users[user] ?: mutableMapOf()
-                    users[user]!![pullRequest.year] = (users[user]!![pullRequest.year] ?: 0) + 1
-                }
-
-                users.forEach {
-                    allByYear.keys.forEach { year ->
-                        it.value[year] = it.value[year] ?: 0
+                    pullRequests.forEach { pullRequest ->
+                        allByYear[pullRequest.year] = (allByYear[pullRequest.year] ?: 0) + 1
                     }
-                }
 
-                _userPullRequests.value = users.map { (user, years) ->
-                    UserPullRequests(
-                        user,
-                        years.map { (year, count) ->
-                            PullRequestByYear(year, count)
-                        }.sortedBy { it.year }
-                    )
-                }.sortedBy { it.user }
+                    _allByYear.value = allByYear.map { (year, count) ->
+                        PullRequestByYear(year, count)
+                    }.sortedBy { it.year }
+
+                    val users = mutableMapOf<String, MutableMap<Int, Int>>()
+
+                    pullRequests.forEach { pullRequest ->
+                        val user = pullRequest.author.displayName
+                        users[user] = users[user] ?: mutableMapOf()
+                        users[user]!![pullRequest.year] = (users[user]!![pullRequest.year] ?: 0) + 1
+                    }
+
+                    users.forEach {
+                        allByYear.keys.forEach { year ->
+                            it.value[year] = it.value[year] ?: 0
+                        }
+                    }
+
+                    _userPullRequests.value = users.map { (user, years) ->
+                        UserPullRequests(
+                            user,
+                            years.map { (year, count) ->
+                                PullRequestByYear(year, count)
+                            }.sortedBy { it.year }
+                        )
+                    }.sortedBy { it.user }
             }
         }
     }

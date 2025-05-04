@@ -8,30 +8,18 @@ import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.browser.window
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.internal.JSJoda.OffsetDateTime
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
-import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
@@ -58,6 +46,12 @@ data class PullRequest(
         get() = createdDate.toLocalDateTime(TimeZone.currentSystemDefault()).year
 }
 
+data class Integration(
+    val id: String,
+    val apiKey: String,
+    val pullRequests: List<PullRequest>
+)
+
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @JsonIgnoreUnknownKeys
@@ -74,25 +68,8 @@ data class Progress(
     val from: Int
 )
 
-object OffsetDateTimeSerializer : KSerializer<OffsetDateTime> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("OffsetDateTime", PrimitiveKind.STRING)
-
-    override fun deserialize(decoder: Decoder): OffsetDateTime {
-        return OffsetDateTime.parse(decoder.decodeString())
-    }
-
-    override fun serialize(encoder: Encoder, value: OffsetDateTime) {
-        encoder.encodeString(value.toString())
-    }
-}
-
 class PullRequestsService {
-    private val _apiKey = MutableStateFlow<String?>(null)
-    private val _id = MutableStateFlow<String?>(null)
-
-    private val _pullRequests = MutableStateFlow<List<PullRequest>>(emptyList())
-    val pullRequests get() = _pullRequests
+    val integrations = MutableStateFlow<List<Integration>>(emptyList())
 
     private val client = HttpClient {
         install(Logging)
@@ -102,8 +79,13 @@ class PullRequestsService {
     }
 
     suspend fun applyBitbucketApiKey(apiKey: String, id: String) : Flow<Progress> = flow {
-        _apiKey.value = apiKey
-        _id.value = id
+        integrations.value = integrations.value.toMutableList().apply {
+            if (!any { it.id == id }) {
+                add(Integration(id, apiKey, emptyList()))
+            }
+        }
+
+        var integration = integrations.value.first { it.id == id }
 
         emit(Progress(0, 0))
 
@@ -118,9 +100,13 @@ class PullRequestsService {
             }
         }.body<PullRequestResponse>()
 
-        _pullRequests.emit(result.values)
+        integration = integration.copy(pullRequests = result.values)
+        integrations.value = integrations.value.toMutableList().apply {
+            removeAll { it.id == id }
+            add(integration)
+        }
 
-        emit(Progress(_pullRequests.value.size, result.size))
+        emit(Progress(integration.pullRequests.size, result.size))
 
         while (result.next != null) {
             result = client.get(result.next!!) {
@@ -130,20 +116,19 @@ class PullRequestsService {
                 }
             }.body<PullRequestResponse>()
 
-            _pullRequests.emit(_pullRequests.value + result.values)
+            integration = integration.copy(pullRequests = integration.pullRequests + result.values)
+            integrations.value = integrations.value.toMutableList().apply {
+                removeAll { it.id == id }
+                add(integration)
+            }
 
-            emit(Progress(_pullRequests.value.size, result.size))
+            emit(Progress(integration.pullRequests.size, result.size))
         }
     }.flowOn(Dispatchers.Default)
 
-    suspend fun syncPullRequests() {
-        window.alert("Coming soon:)")
-    }
-
-    suspend fun deleteBitbucketApiKey() {
-        _apiKey.value = null
-        _id.value = null
-
-        _pullRequests.value = emptyList()
+    suspend fun deleteBitbucketApiKey(id: String) {
+        integrations.value = integrations.value.toMutableList().apply {
+            removeAll { it.id == id }
+        }
     }
 }
