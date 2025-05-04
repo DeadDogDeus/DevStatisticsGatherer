@@ -63,4 +63,18 @@ class IntegrationsViewModel(
 
         _isLoading.value = false
     }
+
+    fun demo() = viewModelScope.launch {
+        _isLoading.value = true
+
+        try {
+            pullRequestsService.demo().collect {
+                _loadingProgress.value = it
+            }
+        } catch (e: Exception) {
+            window.alert("Error applying Bitbucket API key: ${e.message}")
+        } finally {
+            _isLoading.value = false
+        }
+    }
 }

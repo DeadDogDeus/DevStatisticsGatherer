@@ -196,5 +196,12 @@ private fun AddBitBucketKeyView(viewModel: IntegrationsViewModel) {
         ) {
             Text("Add")
         }
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { viewModel.demo() }
+        ) {
+            Text("Demo")
+        }
     }
 }

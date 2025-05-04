@@ -14,7 +14,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.internal.JSJoda.ZoneOffset
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -130,5 +133,64 @@ class PullRequestsService {
         integrations.value = integrations.value.toMutableList().apply {
             removeAll { it.id == id }
         }
+    }
+
+    suspend fun demo() : Flow<Progress> = flow {
+        integrations.value = integrations.value.toMutableList().apply {
+            add(
+                Integration(
+                    id = "demo/web",
+                    apiKey = "API key",
+                    pullRequests = randomPullRequests()
+                )
+            )
+            add(
+                Integration(
+                    id = "demo/ios",
+                    apiKey = "API key",
+                    pullRequests = randomPullRequests()
+                )
+            )
+            add(
+                Integration(
+                    id = "demo/android",
+                    apiKey = "API key",
+                    pullRequests = randomPullRequests()
+                )
+            )
+        }
+
+        emit(Progress(100, 100))
+    }.flowOn(Dispatchers.Default)
+
+    private fun randomPullRequests(): List<PullRequest> {
+        val pullRequests = mutableListOf<PullRequest>()
+        val years = (2018..2025).toList()
+
+        val authors = listOf(
+            PullRequest.Author("Ethan Chandler"),
+            PullRequest.Author("Sophia Bennett"),
+            PullRequest.Author("Liam Harrington"),
+            PullRequest.Author("Ava Montgomery"),
+            PullRequest.Author("Noah Whitaker")
+        )
+
+        years.forEach { year ->
+            (0..(100..200).random()).forEach {
+                pullRequests.add(
+                    PullRequest(
+                        id = year * it,
+                        title = "Pull request $year",
+                        commentCount = 0,
+                        author = authors.random(),
+                        createdDate = LocalDateTime(year, 5, 6, 7, 8)
+                            .toInstant(TimeZone.UTC),
+                        state = "OPEN"
+                    )
+                )
+            }
+        }
+
+        return pullRequests
     }
 }
