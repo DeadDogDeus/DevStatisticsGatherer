@@ -15,8 +15,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Button
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -25,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
@@ -32,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import ir.ehsannarmani.compose_charts.ColumnChart
 import ir.ehsannarmani.compose_charts.LineChart
@@ -42,6 +52,7 @@ import ir.ehsannarmani.compose_charts.models.LabelHelperProperties
 import ir.ehsannarmani.compose_charts.models.LabelProperties
 import ir.ehsannarmani.compose_charts.models.Line
 import kotlinx.browser.window
+import org.statistics_gatherer.frontend.Screens
 import org.statistics_gatherer.frontend.pullRequestService
 
 @Composable
@@ -111,13 +122,25 @@ fun StatisticsView(
                 Row {
                     AllPullRequestsByYearView(allByYear, Modifier.weight(1f))
                     Spacer(modifier = Modifier.width(32.dp))
-                    UserPullRequestsByYearView(userPullRequests, Modifier.weight(1f))
+                    UserPullRequestsByYearView(
+                        userPullRequests = userPullRequests,
+                        keys = viewModel.keysForUserPRs.collectAsState().value,
+                        selectedKey = viewModel.selectedKeyForUserPRs.collectAsState().value,
+                        onSelectKey = { viewModel.selectKeyForUserPRs(it) },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             } else {
                 Column {
                     AllPullRequestsByYearView(allByYear, Modifier.height(400.dp))
                     Spacer(modifier = Modifier.height(32.dp))
-                    UserPullRequestsByYearView(userPullRequests, Modifier.height(400.dp))
+                    UserPullRequestsByYearView(
+                        userPullRequests = userPullRequests,
+                        keys = viewModel.keysForUserPRs.collectAsState().value,
+                        selectedKey = viewModel.selectedKeyForUserPRs.collectAsState().value,
+                        onSelectKey = { viewModel.selectKeyForUserPRs(it) },
+                        modifier = Modifier.height(400.dp)
+                    )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -126,36 +149,55 @@ fun StatisticsView(
 }
 
 @Composable
-private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifier: Modifier) {
+private fun AllPullRequestsByYearView(allByYear: AllStatisticsState, modifier: Modifier) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        Text(
-            text = "All",
-            style = MaterialTheme.typography.body1,
-            modifier = Modifier.padding(top = 32.dp)
-        )
+        Box(modifier = Modifier.padding(top = 24.dp).zIndex(1f)) {
+            TextButton(onClick = { }) {
+                Text(
+                    text = "All",
+                    style = MaterialTheme.typography.body1
+                )
+            }
+        }
+
         val windowSize by rememberWindowSize()
 
+        val colors = listOf(
+            SolidColor(Color(0xFFFFD700)),
+            SolidColor(Color(0xFF00FF00)),
+            SolidColor(Color(0xFF008B8B)),
+            SolidColor(Color(0xFFFF4500)),
+            SolidColor(Color(0xFF1E90FF)),
+            SolidColor(Color(0xFFDA70D6)),
+            SolidColor(Color(0xFFBDB76B)),
+            SolidColor(Color(0xFF32CD32)),
+            SolidColor(Color(0xAA317F43)),
+            SolidColor(Color(0xFFFF1493)),
+            SolidColor(Color(0xFFFF8C00)),
+        )
+
         val bars by remember(allByYear, windowSize) {
-            val bars = allByYear.map {
+            val bars = allByYear.years.map { year ->
                 Bars(
-                    label = it.year.toString(),
-                    values = listOf(
+                    label = year.year.toString(),
+                    values = year.counts.map {
                         Bars.Data(
-                            value = it.count.toDouble(),
-                            color = SolidColor(Color.Blue)
+                            label = it.first,
+                            value = it.second.toDouble(),
+                            color = colors[year.counts.indexOf(it) % colors.size]
                         )
-                    ),
+                    }
                 )
             }
 
             mutableStateOf(bars)
         }
 
-        if (allByYear.isEmpty()) {
+        if (allByYear.years.isEmpty()) {
             Box(
                 modifier = Modifier
                     .heightIn(min = 200.dp, max = 400.dp)
@@ -195,17 +237,43 @@ private fun AllPullRequestsByYearView(allByYear: List<PullRequestByYear>, modifi
 }
 
 @Composable
-private fun UserPullRequestsByYearView(userPullRequests: List<UserPullRequests>, modifier: Modifier) {
+private fun UserPullRequestsByYearView(
+    userPullRequests: List<UserPullRequests>,
+    keys: List<String>,
+    selectedKey: String?,
+    onSelectKey: (String?) -> Unit,
+    modifier: Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        Text(
-            text = "By User",
-            style = MaterialTheme.typography.body1,
-            modifier = Modifier.padding(top = 32.dp)
-        )
+        Box(modifier = Modifier.padding(top = 24.dp).zIndex(1f)) {
+            TextButton(onClick = { expanded = true }) {
+                Text(
+                    text = "By User for ${selectedKey ?: "Not Selected"}",
+                    style = MaterialTheme.typography.body1
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                keys.forEach { key ->
+                    DropdownMenuItem(
+                        enabled = selectedKey != key,
+                        content = { Text(key) },
+                        onClick = {
+                            expanded = false
+                            onSelectKey(key)
+                        }
+                    )
+                }
+            }
+        }
 
         val colors = listOf(
             SolidColor(Color(0xFFFFD700)),
