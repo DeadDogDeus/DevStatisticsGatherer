@@ -230,7 +230,7 @@ private fun AllPullRequestsByYearView(allByYear: AllStatisticsState, modifier: M
                 stiffness = Spring.StiffnessLow
             ),
             labelHelperProperties = LabelHelperProperties(
-                enabled = false
+                enabled = true
             ),
         )
     }

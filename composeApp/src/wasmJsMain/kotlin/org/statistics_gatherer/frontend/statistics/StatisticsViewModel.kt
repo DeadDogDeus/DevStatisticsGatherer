@@ -48,7 +48,7 @@ class StatisticsViewModel(
     fun initViewModel() {
         viewModelScope.launch {
             pullRequestService.integrations
-                .sample(3000)
+                .sample(5000)
                 .collect { integrations ->
                     update(integrations)
             }
