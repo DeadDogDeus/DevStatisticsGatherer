@@ -70,22 +70,57 @@ class StatisticsViewModel(
 
         val years = HashSet<Int>()
 
-        val allByYear = mutableMapOf<Int, Int>()
+        integrations.forEach { integration ->
+            integration.pullRequests.forEach { pullRequest ->
+                years.add(pullRequest.year)
+            }
+        }
 
-//        pullRequests.forEach { pullRequest ->
-//            allByYear[pullRequest.year] = (allByYear[pullRequest.year] ?: 0) + 1
-//            years.add(pullRequest.year)
-//        }
+        val map: Map<String, Map<Int, Int>> = integrations.map { integration ->
+            val allByYear = mutableMapOf<Int, Int>()
 
-//                    _allByYear.value = allByYear.map { (year, count) ->
-//                        PullRequestByYear(year, count)
-//                    }.sortedBy { it.year }
+            years.forEach {
+                allByYear[it] = 0
+            }
+
+            integration.pullRequests.forEach { pullRequest ->
+                allByYear[pullRequest.year] = allByYear[pullRequest.year]!! + 1
+            }
+
+            Pair(integration.id, allByYear)
+        }.toMap()
+
+        val allByYear = mutableMapOf<Int, MutableMap<String, Int>>()
+        years.forEach { year ->
+            allByYear[year] = mutableMapOf()
+        }
+
+        map.forEach { (key, value) ->
+            value.forEach { (year, count) ->
+                allByYear[year]!![key] = count
+            }
+        }
+
+        _allByYear.value = AllStatisticsState(
+            years.map { year ->
+                AllStatisticsState.Year(
+                    year,
+                    allByYear[year]!!.toList().sortedBy { it.first }
+                )
+            }.sortedBy { it.year }
+        )
+
+        val yearsByKey = HashSet<Int>()
 
         val pullRequests = if (integrations.any { it.id == _selectedKeyForUserPRs.value }) {
             integrations.first { it.id == _selectedKeyForUserPRs.value }.pullRequests
         } else {
             _selectedKeyForUserPRs.value = null
             integrations.flatMap { it.pullRequests }
+        }
+
+        pullRequests.forEach { pullRequest ->
+            yearsByKey.add(pullRequest.year)
         }
 
         val users = mutableMapOf<String, MutableMap<Int, Int>>()
@@ -97,7 +132,7 @@ class StatisticsViewModel(
         }
 
         users.forEach {
-            allByYear.keys.forEach { year ->
+            yearsByKey.forEach { year ->
                 it.value[year] = it.value[year] ?: 0
             }
         }
