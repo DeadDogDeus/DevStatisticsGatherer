@@ -32,7 +32,7 @@ class StatisticsViewModel(
     fun initViewModel() {
         viewModelScope.launch {
             pullRequestService.integrations
-                .sample(5000)
+                .sample(3000)
                 .collect { integrations ->
                     val pullRequests = integrations.firstOrNull()?.pullRequests ?: emptyList()
 
