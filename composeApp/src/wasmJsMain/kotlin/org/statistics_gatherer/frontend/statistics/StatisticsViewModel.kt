@@ -29,6 +29,11 @@ data class AllStatisticsState(
     )
 }
 
+data class DropDownItem(
+    val id: String,
+    var selected: Boolean
+)
+
 class StatisticsViewModel(
     private val pullRequestService: PullRequestsService
 ): ViewModel() {
@@ -38,11 +43,8 @@ class StatisticsViewModel(
     private val _userPullRequests: MutableStateFlow<List<UserPullRequests>> = MutableStateFlow(emptyList())
     val userPullRequests: StateFlow<List<UserPullRequests>> get() = _userPullRequests
 
-    private val _keysForUserPRs: MutableStateFlow<List<String>> = MutableStateFlow(emptyList())
-    val keysForUserPRs: StateFlow<List<String>> get() = _keysForUserPRs
-
-    private val _selectedKeyForUserPRs: MutableStateFlow<String?> = MutableStateFlow(null)
-    val selectedKeyForUserPRs: StateFlow<String?> get() = _selectedKeyForUserPRs
+    val userPRsDropDownItems: MutableStateFlow<List<DropDownItem>> = MutableStateFlow(emptyList())
+    val allPRsDropDownItems: MutableStateFlow<List<DropDownItem>> = MutableStateFlow(emptyList())
 
     @OptIn(FlowPreview::class)
     fun initViewModel() {
@@ -56,7 +58,12 @@ class StatisticsViewModel(
     }
 
     fun selectKeyForUserPRs(key: String?) {
-        _selectedKeyForUserPRs.value = key
+        userPRsDropDownItems.value = pullRequestService.integrations.value.map { integration ->
+            DropDownItem(
+                integration.id,
+                integration.id == key
+            )
+        }
         update(pullRequestService.integrations.value)
     }
 
@@ -121,26 +128,33 @@ class StatisticsViewModel(
     }
 
     private fun calculateUserPullRequests(integrations: List<Integration>) {
-        _keysForUserPRs.value = integrations.map { it.id }
-        _selectedKeyForUserPRs.value =
-            if (integrations.any { it.id == _selectedKeyForUserPRs.value }) {
-                _selectedKeyForUserPRs.value
-            } else {
-                integrations.firstOrNull()?.id
+        val selectedItem = userPRsDropDownItems.value.firstOrNull { it.selected }
+
+        userPRsDropDownItems.value = integrations.map { integration ->
+            DropDownItem(
+                integration.id,
+                false
+            )
+        }
+
+        if (integrations.any { it.id == selectedItem?.id }) {
+            userPRsDropDownItems.value = userPRsDropDownItems.value.map { item ->
+                DropDownItem(
+                    item.id,
+                    item.id == selectedItem?.id
+                )
             }
+        } else {
+            userPRsDropDownItems.value = userPRsDropDownItems.value.toMutableList().apply {
+                firstOrNull()?.selected = true
+            }
+        }
+
+        val selectedId = userPRsDropDownItems.value.firstOrNull { it.selected }?.id
 
         val yearsByKey = HashSet<Int>()
 
-        val pullRequests = if (integrations.any { it.id == _selectedKeyForUserPRs.value }) {
-            integrations.first { it.id == _selectedKeyForUserPRs.value }.pullRequests
-        } else {
-            _selectedKeyForUserPRs.value = null
-            integrations.flatMap { it.pullRequests }
-        }
-
-        pullRequests.forEach { pullRequest ->
-            yearsByKey.add(pullRequest.year)
-        }
+        val pullRequests = integrations.first { it.id == selectedId }.pullRequests
 
         val users = mutableMapOf<String, MutableMap<Int, Int>>()
 

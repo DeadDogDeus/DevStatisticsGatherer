@@ -24,6 +24,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -124,8 +125,7 @@ fun StatisticsView(
                     Spacer(modifier = Modifier.width(32.dp))
                     UserPullRequestsByYearView(
                         userPullRequests = userPullRequests,
-                        keys = viewModel.keysForUserPRs.collectAsState().value,
-                        selectedKey = viewModel.selectedKeyForUserPRs.collectAsState().value,
+                        dropDownItems = viewModel.userPRsDropDownItems.collectAsState().value,
                         onSelectKey = { viewModel.selectKeyForUserPRs(it) },
                         modifier = Modifier.weight(1f)
                     )
@@ -136,8 +136,7 @@ fun StatisticsView(
                     Spacer(modifier = Modifier.height(32.dp))
                     UserPullRequestsByYearView(
                         userPullRequests = userPullRequests,
-                        keys = viewModel.keysForUserPRs.collectAsState().value,
-                        selectedKey = viewModel.selectedKeyForUserPRs.collectAsState().value,
+                        dropDownItems = viewModel.userPRsDropDownItems.collectAsState().value,
                         onSelectKey = { viewModel.selectKeyForUserPRs(it) },
                         modifier = Modifier.height(400.dp)
                     )
@@ -239,8 +238,7 @@ private fun AllPullRequestsByYearView(allByYear: AllStatisticsState, modifier: M
 @Composable
 private fun UserPullRequestsByYearView(
     userPullRequests: List<UserPullRequests>,
-    keys: List<String>,
-    selectedKey: String?,
+    dropDownItems: List<DropDownItem>,
     onSelectKey: (String?) -> Unit,
     modifier: Modifier
 ) {
@@ -254,7 +252,7 @@ private fun UserPullRequestsByYearView(
         Box(modifier = Modifier.padding(top = 24.dp).zIndex(1f)) {
             TextButton(onClick = { expanded = true }) {
                 Text(
-                    text = "By User for ${selectedKey ?: "Not Selected"}",
+                    text = "By User for ${dropDownItems.firstOrNull { it.selected }?.id ?: "Not Selected"}",
                     style = MaterialTheme.typography.body1
                 )
             }
@@ -262,13 +260,26 @@ private fun UserPullRequestsByYearView(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                keys.forEach { key ->
+                dropDownItems.forEach { item ->
                     DropdownMenuItem(
-                        enabled = selectedKey != key,
-                        content = { Text(key) },
+                        enabled = !item.selected,
+                        content = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (item.selected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = ""
+                                    )
+                                }
+
+                                Text(item.id)
+                            }
+                        },
                         onClick = {
                             expanded = false
-                            onSelectKey(key)
+                            onSelectKey(item.id)
                         }
                     )
                 }
