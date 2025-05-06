@@ -61,13 +61,12 @@ class StatisticsViewModel(
     }
 
     private fun update(integrations: List<Integration>) {
-        _keysForUserPRs.value = integrations.map { it.id }
-        _selectedKeyForUserPRs.value = if (integrations.any { it.id == _selectedKeyForUserPRs.value }) {
-            _selectedKeyForUserPRs.value
-        } else {
-            integrations.firstOrNull()?.id
-        }
+        calculateAllPullRequests(integrations)
 
+        calculateUserPullRequests(integrations)
+    }
+
+    private fun calculateAllPullRequests(integrations: List<Integration>) {
         val years = HashSet<Int>()
 
         integrations.forEach { integration ->
@@ -76,7 +75,7 @@ class StatisticsViewModel(
             }
         }
 
-        val map: Map<String, Map<Int, Int>> = integrations.map { integration ->
+        val map: MutableMap<String, Map<Int, Int>> = integrations.associate { integration ->
             val allByYear = mutableMapOf<Int, Int>()
 
             years.forEach {
@@ -88,7 +87,17 @@ class StatisticsViewModel(
             }
 
             Pair(integration.id, allByYear)
-        }.toMap()
+        }.toMutableMap()
+
+        val all = mutableMapOf<Int, Int>()
+
+        map.forEach {
+            it.value.forEach { (year, count) ->
+                all[year] = (all[year] ?: 0) + count
+            }
+        }
+
+        map["all"] = all
 
         val allByYear = mutableMapOf<Int, MutableMap<String, Int>>()
         years.forEach { year ->
@@ -109,6 +118,16 @@ class StatisticsViewModel(
                 )
             }.sortedBy { it.year }
         )
+    }
+
+    private fun calculateUserPullRequests(integrations: List<Integration>) {
+        _keysForUserPRs.value = integrations.map { it.id }
+        _selectedKeyForUserPRs.value =
+            if (integrations.any { it.id == _selectedKeyForUserPRs.value }) {
+                _selectedKeyForUserPRs.value
+            } else {
+                integrations.firstOrNull()?.id
+            }
 
         val yearsByKey = HashSet<Int>()
 
