@@ -86,11 +86,17 @@ class StatisticsViewModel(
     }
 
     private fun calculateAllPullRequests(integrations: List<Integration>) {
+        val isAllSelected = allPRsDropDownItems.value.firstOrNull { it.id == "all" }?.selected == true
+
         allPRsDropDownItems.value = integrations.map { integration ->
             DropDownItem(
                 integration.id,
                 allPRsDropDownItems.value.firstOrNull { it.id == integration.id }?.selected == true
             )
+        }.toMutableList().apply {
+            if (isNotEmpty()) {
+                add(DropDownItem("all", isAllSelected))
+            }
         }
 
         val years = HashSet<Int>()
@@ -102,7 +108,6 @@ class StatisticsViewModel(
         }
 
         val map: MutableMap<String, Map<Int, Int>> = integrations
-//            .filter { integration -> allPRsDropDownItems.value.any { it.id == integration.id && it.selected } }
             .associate { integration ->
             val allByYear = mutableMapOf<Int, Int>()
 
@@ -142,14 +147,18 @@ class StatisticsViewModel(
             }
         }
 
-        _allByYear.value = AllStatisticsState(
-            years.map { year ->
-                AllStatisticsState.Year(
-                    year,
-                    allByYear[year]!!.toList().sortedBy { it.first }
-                )
-            }.sortedBy { it.year }
-        )
+        if (map.isEmpty()) {
+            _allByYear.value = AllStatisticsState(emptyList())
+        } else {
+            _allByYear.value = AllStatisticsState(
+                years.map { year ->
+                    AllStatisticsState.Year(
+                        year,
+                        allByYear[year]!!.toList().sortedBy { it.first }
+                    )
+                }.sortedBy { it.year }
+            )
+        }
     }
 
     private fun calculateUserPullRequests(integrations: List<Integration>) {
