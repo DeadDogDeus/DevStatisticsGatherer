@@ -188,6 +188,12 @@ class StatisticsViewModel(
 
         val yearsByKey = HashSet<Int>()
 
+        integrations.forEach { integration ->
+            integration.pullRequests.forEach { pullRequest ->
+                yearsByKey.add(pullRequest.year)
+            }
+        }
+
         val pullRequests = integrations.first { it.id == selectedId }.pullRequests
 
         val users = mutableMapOf<String, MutableMap<Int, Int>>()
