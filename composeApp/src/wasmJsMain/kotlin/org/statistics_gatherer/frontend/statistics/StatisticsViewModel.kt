@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.launch
 import org.statistics_gatherer.frontend.export_pull_requests.Integration
@@ -57,6 +58,17 @@ class StatisticsViewModel(
         }
     }
 
+    fun selectKeyForAllPRs(key: String?) {
+        allPRsDropDownItems.value = allPRsDropDownItems.value.map { item ->
+            DropDownItem(
+                item.id,
+                if (item.id == key) !item.selected else item.selected
+            )
+        }
+
+        update(pullRequestService.integrations.value)
+    }
+
     fun selectKeyForUserPRs(key: String?) {
         userPRsDropDownItems.value = pullRequestService.integrations.value.map { integration ->
             DropDownItem(
@@ -74,6 +86,13 @@ class StatisticsViewModel(
     }
 
     private fun calculateAllPullRequests(integrations: List<Integration>) {
+        allPRsDropDownItems.value = integrations.map { integration ->
+            DropDownItem(
+                integration.id,
+                allPRsDropDownItems.value.firstOrNull { it.id == integration.id }?.selected == true
+            )
+        }
+
         val years = HashSet<Int>()
 
         integrations.forEach { integration ->
@@ -82,7 +101,9 @@ class StatisticsViewModel(
             }
         }
 
-        val map: MutableMap<String, Map<Int, Int>> = integrations.associate { integration ->
+        val map: MutableMap<String, Map<Int, Int>> = integrations
+//            .filter { integration -> allPRsDropDownItems.value.any { it.id == integration.id && it.selected } }
+            .associate { integration ->
             val allByYear = mutableMapOf<Int, Int>()
 
             years.forEach {
@@ -105,6 +126,10 @@ class StatisticsViewModel(
         }
 
         map["all"] = all
+
+        allPRsDropDownItems.value.filter { !it.selected }.forEach {
+            map.remove(it.id)
+        }
 
         val allByYear = mutableMapOf<Int, MutableMap<String, Int>>()
         years.forEach { year ->

@@ -121,7 +121,13 @@ fun StatisticsView(
 
             if (windowSize.width > 800) {
                 Row {
-                    AllPullRequestsByYearView(allByYear, Modifier.weight(1f))
+                    AllPullRequestsByYearView(
+                        allByYear,
+                        dropDownItems = viewModel.allPRsDropDownItems.collectAsState().value,
+                        modifier = Modifier.weight(1f),
+                        onSelectKey = { viewModel.selectKeyForAllPRs(it) }
+                    )
+
                     Spacer(modifier = Modifier.width(32.dp))
                     UserPullRequestsByYearView(
                         userPullRequests = userPullRequests,
@@ -132,7 +138,12 @@ fun StatisticsView(
                 }
             } else {
                 Column {
-                    AllPullRequestsByYearView(allByYear, Modifier.height(400.dp))
+                    AllPullRequestsByYearView(
+                        allByYear,
+                        dropDownItems = viewModel.allPRsDropDownItems.collectAsState().value,
+                        modifier = Modifier.height(400.dp),
+                        onSelectKey = { viewModel.selectKeyForAllPRs(it) }
+                    )
                     Spacer(modifier = Modifier.height(32.dp))
                     UserPullRequestsByYearView(
                         userPullRequests = userPullRequests,
@@ -148,18 +159,54 @@ fun StatisticsView(
 }
 
 @Composable
-private fun AllPullRequestsByYearView(allByYear: AllStatisticsState, modifier: Modifier) {
+private fun AllPullRequestsByYearView(
+    allByYear: AllStatisticsState,
+    dropDownItems: List<DropDownItem>,
+    onSelectKey: (String?) -> Unit,
+    modifier: Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
         Box(modifier = Modifier.padding(top = 24.dp).zIndex(1f)) {
-            TextButton(onClick = { }) {
+            TextButton(onClick = {
+                expanded = true
+            }) {
                 Text(
                     text = "All",
                     style = MaterialTheme.typography.body1
                 )
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                dropDownItems.forEach { item ->
+                    DropdownMenuItem(
+                        content = {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                if (item.selected) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = ""
+                                    )
+                                }
+
+                                Text(item.id)
+                            }
+                        },
+                        onClick = {
+                            onSelectKey(item.id)
+                        }
+                    )
+                }
             }
         }
 
